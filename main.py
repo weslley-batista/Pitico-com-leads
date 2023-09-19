@@ -20,18 +20,17 @@ async def on_ready():
 
 
 @bot.command(name='leads')
-async def nome_funcao(ctx, args):
-  emailDate = args
+async def nome_funcao(ctx, args=None):
+  emailDate = args #data buscada
+
   with app.app_context():
     response = consultar_emails(emailDate)
     if(response):
       for item in response:
-        LeadEmail = KeyWordInMessage(item, 'Identificador: home')
-        #if(LeadEmail):
-          #responseFormat = formatHeader(item)
-          #await ctx.send(responseFormat)
-        responseFormat = formatHeader(item)
-        await ctx.send(responseFormat)
+        LeadEmail = KeyWordInMessage(item, 'Identificador: home') #identifica o email do lead
+        if(LeadEmail): #envia caso seja o email do lead
+          responseFormat = formatHeader(item)
+          await ctx.send(responseFormat)
     else:
       responseFormat = notFindEmail()
       await ctx.send(responseFormat)
@@ -84,46 +83,15 @@ def consultar_emails(emailDate):
       data_objeto = datetime.strptime(emailDate, '%d-%m-%Y')
       emailDate = data_objeto.strftime('%d-%b-%Y')
       senderOnDate = f"ON {emailDate}"
-      print(senderOnDate)
-
-  
-    dataInicial  = False
-    senderDateInital = False
-    if(dataInicial):
-        data_obj = datetime.strptime(dataInicial, "%Y-%m-%d")
-        date = data_obj.strftime("%d-%b-%Y")
-        senderDateInital = f"SINCE {date}"
-        print(senderDateInital)
-
-    dataFinal = False
-    senderDateFinal = False
-    if(dataFinal):
-        data_obj = datetime.strptime(dataFinal, "%Y-%m-%d")
-        date = data_obj.strftime("%d-%b-%Y")
-        senderDateFinal = f"BEFORE {date}"
-        print(senderDateFinal)
 
     # Buscar os e-mails
-    if(senderDateInital and senderDateFinal): # Procura por gap data
-        print('gap alternative')
-        gap = f'{senderDateFinal} {senderDateFinal}'
-        status, data = mail.search(None, statusMessage, senderFind, gap)
-    elif (senderDateInital):
-        print('inital alternative')
-        status, data = mail.search(None, statusMessage, senderFind, senderDateInital)
-    elif (senderDateFinal):
-        print('final alternative')
-        status, data = mail.search(None, statusMessage, senderFind, senderDateFinal)
-    elif (senderOnDate):
+    if (senderOnDate):
         try:
-          print('On Date alternative')
           status, data = mail.search(None, statusMessage, senderFind, senderOnDate)  
         except error:
           return False
-    else: # Procura sem data
-        print('none alternative')
-        status, data = mail.search(None, statusMessage, senderFind)
-
+    else:
+      return  False
     # Obter os números dos e-mails
     email_ids = data[0].split()
 
@@ -165,7 +133,6 @@ def consultar_emails(emailDate):
         })
 
     #retorno dos emails
-    print(email_details)
     return email_details
   
     # Fechar a conexão com o servidor IMAP
